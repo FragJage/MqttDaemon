@@ -5,8 +5,8 @@
 #include <algorithm>
 
 #include "MqttDaemon.h"
-#include "Plateforms/Plateforms.h"
-#include "SimpleFolders/SimpleFolders.h"
+#include "Plateforms.h"
+#include "SimpleFolders.h"
 
 
 using namespace std;

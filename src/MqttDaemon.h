@@ -10,9 +10,9 @@
 #include <WinSock2.h>		// To stop windows.h including winsock.h
 #endif
 #include "MqttBase.h"
-#include "Service/Service.h"
-#include "SimpleIni/SimpleIni.h"
-#include "SimpleLog/SimpleLog.h"
+#include "Service.h"
+#include "SimpleIni.h"
+#include "SimpleLog.h"
 
 class MqttDaemon : public Service::IService, public MqttBase
 {

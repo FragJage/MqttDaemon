@@ -18,7 +18,7 @@ MqttDaemon::MqttDaemon(const string& topic, const string& configFileName) : m_lo
 	m_SimpleLog.SetFilter(&m_logFilter);
 	m_SimpleLog.SetWriter(&m_logWriter);
 
-	m_ConfigFilename = SimpleFolders::AddFile(SimpleFolders::GetFolder(SimpleFolders::FolderType::User), configFileName, "conf");
+	m_ConfigFilename = SimpleFolders::AddFile(SimpleFolders::GetFolder(SimpleFolders::FolderType::Configuration), configFileName, "conf");
 	if (!SimpleFolders::FileExists(m_ConfigFilename)) m_ConfigFilename = "";
 
 	SetMainTopic(topic);

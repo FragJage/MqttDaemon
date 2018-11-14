@@ -5,7 +5,6 @@
 #include <algorithm>
 
 #include "MqttDaemon.h"
-#include "Plateforms.h"
 #include "SimpleFolders.h"
 
 

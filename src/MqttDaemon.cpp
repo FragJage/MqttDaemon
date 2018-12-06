@@ -5,7 +5,6 @@
 #include <algorithm>
 
 #include "MqttDaemon.h"
-#include "Plateforms.h"
 #include "SimpleFolders.h"
 #include "StringTools.h"
 
@@ -124,7 +123,7 @@ void MqttDaemon::Configure()
 
 	LOG_INFO(m_Log) << "Load config (file " << m_ConfigFilename << ")";
 
-	iniFile.SetOptions(iniFile.Comment, "#");
+	iniFile.SetOptions(iniFile.Comment, ";");
 	if (!iniFile.Load(m_ConfigFilename))
 	{
 		LOG_INFO(m_Log) << "Unable to open config file.";
@@ -144,8 +143,9 @@ void MqttDaemon::MqttConfigure(SimpleIni& iniFile)
 
 	svalue = iniFile.GetValue("mqtt", "server", "tcp://127.0.0.1:1883");
 	id = iniFile.GetValue("mqtt", "id", "");
+	LOG_VERBOSE(m_Log) << "Connecting to mqtt server " << svalue;
 	SetServer(svalue, id);
-	LOG_VERBOSE(m_Log) << "Connect to mqtt server " << svalue;
+	LOG_VERBOSE(m_Log) << "Mqtt server connected";
 
 	ivalue = iniFile.GetValue("mqtt", "keepalive", 300);
 	SetKeepAlive(ivalue);

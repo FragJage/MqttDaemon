@@ -7,12 +7,13 @@
 #include "MqttDaemon.h"
 #include "Plateforms.h"
 #include "SimpleFolders.h"
+#include "StringTools.h"
 
 
 using namespace std;
 
 
-MqttDaemon::MqttDaemon(const string& topic, const string& configFileName) : m_logFile("")
+MqttDaemon::MqttDaemon(const string& topic, const string& configFileName) : m_logFile(""), m_MqttQos(0), m_MqttRetained(true)
 {
 	m_Log = &m_SimpleLog;
 	m_SimpleLog.SetFilter(&m_logFilter);
@@ -157,6 +158,13 @@ void MqttDaemon::MqttConfigure(SimpleIni& iniFile)
 	svalue = iniFile.GetValue("mqtt", "topic", "");
 	SetMainTopic(svalue);
 	LOG_VERBOSE(m_Log) << "Set mqtt topic to " << svalue;
+
+	m_MqttQos = iniFile.GetValue("mqtt", "qos", 0);
+	LOG_VERBOSE(m_Log) << "Set mqtt qos to " << m_MqttQos;
+
+	svalue = iniFile.GetValue("mqtt", "retained", "true");
+	m_MqttRetained = (StringTools::IsEqualCaseInsensitive(svalue, "true")||svalue=="1");
+	LOG_VERBOSE(m_Log) << "Set mqtt retained to " << m_MqttRetained;
 }
 
 void MqttDaemon::LogConfigure(SimpleIni& iniFile)
@@ -182,6 +190,11 @@ void MqttDaemon::LogConfigure(SimpleIni& iniFile)
 		m_logFilter.SetFunction(svalue);
 		LOG_VERBOSE(m_Log) << "Set log Function to " << svalue;
 	}
+}
+
+void MqttDaemon::Publish(const string& sensor, const string& value)
+{
+    MqttBase::Publish(sensor, value, m_MqttQos, m_MqttRetained);
 }
 
 void MqttDaemon::ReadParameters(int argc, char* argv[])

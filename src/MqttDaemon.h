@@ -23,6 +23,7 @@ class MqttDaemon : public Service::IService, public MqttBase
 		virtual void DaemonConfigure(SimpleIni& iniFile) = 0;
 		virtual int DaemonLoop(int argc, char* argv[]) = 0;
 		virtual void on_message(const std::string& topic, const std::string& message)=0;
+		void Publish(const std::string& sensor, const std::string& value);
 
 		int ServiceLoop(int argc, char* argv[]);
 		void SetConfigfile(const std::string& configFile);
@@ -46,6 +47,8 @@ class MqttDaemon : public Service::IService, public MqttBase
 		SimpleLog::DefaultFilter m_logFilter;
 
 		std::string m_ConfigFilename;
+		int m_MqttQos;
+		bool m_MqttRetained;
 };
 
 #endif // MQTTDAEMON_H

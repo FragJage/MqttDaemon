@@ -81,6 +81,14 @@ void MqttBase::Publish(const string& sensor, const string& value)
 	m_MqttClient->publish(topic, value.c_str(), value.length());
 }
 
+void MqttBase::Publish(const string& sensor, const string& value, int qos, bool retained)
+{
+	if (m_MqttClient==nullptr) Connect();
+
+    string topic = m_MainTopic+sensor;
+	m_MqttClient->publish(topic, value.c_str(), value.length(), qos, retained);
+}
+
 void MqttBase::Subscribe(const string& topic, int qos)
 {
 	if (m_MqttClient == nullptr) Connect();

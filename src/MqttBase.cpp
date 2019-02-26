@@ -96,7 +96,7 @@ void MqttBase::Subscribe(const string& topic, int qos)
 	m_MqttClient->subscribe(topic, qos);
 }
 
-void MqttBase::Unubscribe(const std::string& topic)
+void MqttBase::Unsubscribe(const std::string& topic)
 {
 	if (m_MqttClient == nullptr) return;
 	m_MqttClient->unsubscribe(topic);

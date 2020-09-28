@@ -166,6 +166,14 @@ void MqttDaemon::MqttConfigure(SimpleIni& iniFile)
 	svalue = iniFile.GetValue("mqtt", "retained", "true");
 	m_MqttRetained = (StringTools::IsEqualCaseInsensitive(svalue, "true")||svalue=="1");
 	LOG_VERBOSE(m_Log) << "Set mqtt retained to " << m_MqttRetained;
+
+    svalue = iniFile.GetValue("mqtt", "user", "");
+    string pwd = iniFile.GetValue("mqtt", "password", "");
+    if(svalue!="")
+    {
+        SetAuthentication(svalue, pwd);
+        LOG_VERBOSE(m_Log) << "Set mqtt authentication";
+    }
 }
 
 void MqttDaemon::LogConfigure(SimpleIni& iniFile)

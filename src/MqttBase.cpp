@@ -4,7 +4,7 @@
 
 using namespace std;
 
-MqttBase::MqttBase() : m_Server("tcp://localhost:1883"), m_Id(""), m_MainTopic(""), m_MqttClient(nullptr)
+MqttBase::MqttBase() : m_Server("tcp://localhost:1883"), m_Id(""), m_MainTopic(""), m_MqttCli(m_Server, "X"), m_MqttClient(&m_MqttCli)
 {
 	m_MqttConnOpts.set_automatic_reconnect(true);
 	m_MqttConnOpts.set_clean_session(true);
@@ -57,22 +57,23 @@ int MqttBase::GetKeepAlive()
 
 void MqttBase::Connect()
 {
-	if (m_MqttClient!=nullptr) Disconnect();
+	//if (m_MqttClient!=nullptr)
+	Disconnect();
 
-	m_MqttClient = new mqtt::client(m_Server, "X");
+	//m_MqttClient = new mqtt::client(m_Server, "X");
 	m_MqttClient->set_callback(*this);
 	m_MqttClient->connect(m_MqttConnOpts);
 }
 
 void MqttBase::Disconnect()
 {
-	if (m_MqttClient==nullptr) return;
+	//if (m_MqttClient==nullptr) return;
 
 	if(m_MqttClient->is_connected())
 		m_MqttClient->disconnect();
 
-	delete m_MqttClient;
-	m_MqttClient = nullptr;
+	//delete m_MqttClient;
+	//m_MqttClient = nullptr;
 }
 
 void MqttBase::Publish(const string& sensor, const string& value)

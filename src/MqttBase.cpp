@@ -57,8 +57,7 @@ int MqttBase::GetKeepAlive()
 
 void MqttBase::Connect()
 {
-	//if (m_MqttClient!=nullptr)
-	Disconnect();
+	//if (m_MqttClient!=nullptr) Disconnect();
 
 	//m_MqttClient = new mqtt::client(m_Server, "X");
 	m_MqttClient->set_callback(*this);

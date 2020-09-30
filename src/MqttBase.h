@@ -33,8 +33,6 @@ class MqttBase : public virtual mqtt::callback
 	std::string m_Server;
 	std::string m_Id;
 	std::string m_MainTopic;
-	int m_KeepAlive;
-	int m_Timeout;
 	mqtt::client* m_MqttClient;
 	mqtt::connect_options m_ConnOpts;
 };

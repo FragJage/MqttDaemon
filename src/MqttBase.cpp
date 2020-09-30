@@ -3,10 +3,12 @@
 
 using namespace std;
 
-MqttBase::MqttBase() : m_Server("tcp://localhost:1883"), m_Id(""), m_MainTopic(""), m_KeepAlive(300), m_Timeout(5), m_MqttClient(nullptr)
+MqttBase::MqttBase() : m_Server("tcp://localhost:1883"), m_Id(""), m_MainTopic(""), m_MqttClient(nullptr)
 {
     m_ConnOpts.set_automatic_reconnect(true);
 	m_ConnOpts.set_clean_session(true);
+	m_ConnOpts.set_keep_alive_interval(300);
+	m_ConnOpts.set_connect_timeout(5);
 }
 
 MqttBase::~MqttBase()
@@ -33,19 +35,17 @@ string MqttBase::GetMainTopic()
 
 void MqttBase::SetKeepAlive(int keepalive)
 {
-    m_KeepAlive = keepalive;
-	m_ConnOpts.set_keep_alive_interval(m_KeepAlive);
+	m_ConnOpts.set_keep_alive_interval(keepalive);
 }
 
 void MqttBase::SetTimeout(int timeout)
 {
-	m_Timeout = timeout;
-	m_ConnOpts.set_connect_timeout(m_Timeout);
+	m_ConnOpts.set_connect_timeout(timeout);
 }
 
 int MqttBase::GetKeepAlive()
 {
-    return m_KeepAlive;
+    return m_ConnOpts.get_keep_alive_interval().count();
 }
 
 void MqttBase::Connect()

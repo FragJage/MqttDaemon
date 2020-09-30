@@ -1,11 +1,12 @@
 #include <iostream>
-
 #include "MqttBase.h"
 
 using namespace std;
 
 MqttBase::MqttBase() : m_Server("tcp://localhost:1883"), m_Id(""), m_MainTopic(""), m_KeepAlive(300), m_Timeout(5), m_MqttClient(nullptr)
 {
+    m_ConnOpts.set_automatic_reconnect(true);
+	m_ConnOpts.set_clean_session(true);
 }
 
 MqttBase::~MqttBase()
@@ -33,11 +34,13 @@ string MqttBase::GetMainTopic()
 void MqttBase::SetKeepAlive(int keepalive)
 {
     m_KeepAlive = keepalive;
+	m_ConnOpts.set_keep_alive_interval(m_KeepAlive);
 }
 
 void MqttBase::SetTimeout(int timeout)
 {
 	m_Timeout = timeout;
+	m_ConnOpts.set_connect_timeout(m_Timeout);
 }
 
 int MqttBase::GetKeepAlive()
@@ -51,12 +54,7 @@ void MqttBase::Connect()
 
 	m_MqttClient = new mqtt::client(m_Server, m_Id);
 	m_MqttClient->set_callback(*this);
-	mqtt::connect_options connOpts;
-	connOpts.set_automatic_reconnect(true);
-	connOpts.set_clean_session(true);
-	connOpts.set_connect_timeout(m_Timeout);
-	connOpts.set_keep_alive_interval(m_KeepAlive);
-	m_MqttClient->connect(connOpts);
+	m_MqttClient->connect(m_ConnOpts);
 }
 
 void MqttBase::Disconnect()
@@ -64,7 +62,9 @@ void MqttBase::Disconnect()
 	if (m_MqttClient==nullptr) return;
 
 	if(m_MqttClient->is_connected())
+    {
 		m_MqttClient->disconnect();
+    }
 
 	//delete m_MqttClient;
 	//m_MqttClient = nullptr;

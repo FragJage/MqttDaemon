@@ -11,7 +11,6 @@
 
 using namespace std;
 
-const int MqttDaemon::RESTART_MQTTDAEMON = 32767;
 
 MqttDaemon::MqttDaemon(const string& topic, const string& configFileName) : m_logFile(""), m_MqttQos(0), m_MqttRetained(true)
 {
@@ -231,18 +230,14 @@ void MqttDaemon::ReadParameters(int argc, char* argv[])
 
 int MqttDaemon::ServiceLoop(int argc, char* argv[])
 {
-    int ret;
 
 	LOG_ENTER;
 	ReadParameters(argc, argv);
+	Configure();
 
-	do
-    {
-        Configure();
-        Connect();
-        ret = DaemonLoop(argc, argv);
-        Disconnect();
-    } while(ret == MqttDaemon::RESTART_MQTTDAEMON);
+	Connect();
+	int ret = DaemonLoop(argc, argv);
+    Disconnect();
 
 	LOG_EXIT_OK;
     return ret;

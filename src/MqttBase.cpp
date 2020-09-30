@@ -4,9 +4,8 @@
 
 using namespace std;
 
-MqttBase::MqttBase() : m_Server("tcp://localhost:1883"), m_Id(""), m_MainTopic(""), m_KeepAlive(300), m_Timeout(5), m_MqttClient(nullptr), m_MqttCli(m_Server, "")
+MqttBase::MqttBase() : m_Server("tcp://localhost:1883"), m_Id(""), m_MainTopic(""), m_KeepAlive(300), m_Timeout(5), m_MqttClient(nullptr)
 {
-	m_MqttClient = &m_MqttCli;
 }
 
 MqttBase::~MqttBase()
@@ -50,7 +49,7 @@ void MqttBase::Connect()
 {
 	if (m_MqttClient!=nullptr) Disconnect();
 
-	//m_MqttClient = new mqtt::client(m_Server, "X");
+	m_MqttClient = new mqtt::client(m_Server, m_Id);
 	m_MqttClient->set_callback(*this);
 	//mqtt::connect_options connOpts;
 	//connOpts.set_automatic_reconnect(true);

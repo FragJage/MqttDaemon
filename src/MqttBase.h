@@ -36,7 +36,6 @@ class MqttBase : public virtual mqtt::callback
 	int m_KeepAlive;
 	int m_Timeout;
 	mqtt::client* m_MqttClient;
-	mqtt::client m_MqttCli;
 };
 
 #endif // MQTTBASE_H

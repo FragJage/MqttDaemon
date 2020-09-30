@@ -12,9 +12,8 @@ class MqttBase : public virtual mqtt::callback
 
 	void SetServer(const std::string& server, const std::string& id);
 	void SetMainTopic(const std::string& mainTopic);
-	void SetKeepAlive(int keepAlive);
+	void SetKeepAlive(int keepalive);
 	void SetTimeout(int timeout);
-	void SetAuthentication(const std::string& user, const std::string& password);
 	std::string GetMainTopic();
 	int GetKeepAlive();
 
@@ -34,9 +33,10 @@ class MqttBase : public virtual mqtt::callback
 	std::string m_Server;
 	std::string m_Id;
 	std::string m_MainTopic;
-	mqtt::client m_MqttCli;
+	int m_KeepAlive;
+	int m_Timeout;
 	mqtt::client* m_MqttClient;
-	mqtt::connect_options m_MqttConnOpts;
+	mqtt::client m_MqttCli;
 };
 
 #endif // MQTTBASE_H

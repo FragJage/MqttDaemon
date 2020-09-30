@@ -4,12 +4,9 @@
 
 using namespace std;
 
-MqttBase::MqttBase() : m_Server("tcp://localhost:1883"), m_Id(""), m_MainTopic(""), m_MqttCli(m_Server, "X"), m_MqttClient(&m_MqttCli)
+MqttBase::MqttBase() : m_Server("tcp://localhost:1883"), m_Id(""), m_MainTopic(""), m_KeepAlive(300), m_Timeout(5), m_MqttClient(nullptr), m_MqttCli(m_Server, "")
 {
-	m_MqttConnOpts.set_automatic_reconnect(true);
-	m_MqttConnOpts.set_clean_session(true);
-    m_MqttConnOpts.set_connect_timeout(5);
-	m_MqttConnOpts.set_keep_alive_interval(300);
+	m_MqttClient = &m_MqttCli;
 }
 
 MqttBase::~MqttBase()
@@ -34,39 +31,40 @@ string MqttBase::GetMainTopic()
     return m_MainTopic;
 }
 
-void MqttBase::SetKeepAlive(int keepAlive)
+void MqttBase::SetKeepAlive(int keepalive)
 {
-	m_MqttConnOpts.set_keep_alive_interval(keepAlive);
+    m_KeepAlive = keepalive;
 }
 
 void MqttBase::SetTimeout(int timeout)
 {
-    m_MqttConnOpts.set_connect_timeout(timeout);
-}
-
-void MqttBase::SetAuthentication(const std::string& user, const std::string& password)
-{
-	m_MqttConnOpts.set_user_name(user);
-	m_MqttConnOpts.set_password(password);
+	m_Timeout = timeout;
 }
 
 int MqttBase::GetKeepAlive()
 {
-	return m_MqttConnOpts.get_keep_alive_interval().count();
+    return m_KeepAlive;
 }
 
 void MqttBase::Connect()
 {
-	//if (m_MqttClient!=nullptr) Disconnect();
+	if (m_MqttClient!=nullptr) Disconnect();
 
 	//m_MqttClient = new mqtt::client(m_Server, "X");
 	m_MqttClient->set_callback(*this);
-	m_MqttClient->connect(m_MqttConnOpts);
+	//mqtt::connect_options connOpts;
+	//connOpts.set_automatic_reconnect(true);
+	//connOpts.set_clean_session(true);
+	//connOpts.set_connection_timeout(m_Timeout);
+	//connOpts.set_connect_timeout(m_Timeout);
+	//connOpts.set_keep_alive_interval(m_KeepAlive);
+	//m_MqttClient->connect(connOpts);
+	m_MqttClient->connect();
 }
 
 void MqttBase::Disconnect()
 {
-	//if (m_MqttClient==nullptr) return;
+	if (m_MqttClient==nullptr) return;
 
 	if(m_MqttClient->is_connected())
 		m_MqttClient->disconnect();

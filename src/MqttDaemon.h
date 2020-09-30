@@ -28,6 +28,8 @@ class MqttDaemon : public Service::IService, public MqttBase
 		int ServiceLoop(int argc, char* argv[]);
 		void SetConfigfile(const std::string& configFile);
 
+        static const int RESTART_MQTTDAEMON;
+
 	protected:
 		SimpleLog* m_Log;
 

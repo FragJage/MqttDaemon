@@ -11,6 +11,7 @@
 
 using namespace std;
 
+const int MqttDaemon::RESTART_MQTTDAEMON = 32767;
 
 MqttDaemon::MqttDaemon(const string& topic, const string& configFileName) : m_logFile(""), m_MqttQos(0), m_MqttRetained(true)
 {
@@ -165,14 +166,6 @@ void MqttDaemon::MqttConfigure(SimpleIni& iniFile)
 	svalue = iniFile.GetValue("mqtt", "retained", "true");
 	m_MqttRetained = (StringTools::IsEqualCaseInsensitive(svalue, "true")||svalue=="1");
 	LOG_VERBOSE(m_Log) << "Set mqtt retained to " << m_MqttRetained;
-
-    svalue = iniFile.GetValue("mqtt", "user", "");
-    string pwd = iniFile.GetValue("mqtt", "password", "");
-    if(svalue!="")
-    {
-        SetAuthentication(svalue, pwd);
-        LOG_VERBOSE(m_Log) << "Set mqtt authentication";
-    }
 }
 
 void MqttDaemon::LogConfigure(SimpleIni& iniFile)
@@ -230,14 +223,18 @@ void MqttDaemon::ReadParameters(int argc, char* argv[])
 
 int MqttDaemon::ServiceLoop(int argc, char* argv[])
 {
+    int ret;
 
 	LOG_ENTER;
 	ReadParameters(argc, argv);
-	Configure();
 
-	Connect();
-	int ret = DaemonLoop(argc, argv);
-    Disconnect();
+	do
+    {
+        Configure();
+        Connect();
+        ret = DaemonLoop(argc, argv);
+        Disconnect();
+    } while(ret == MqttDaemon::RESTART_MQTTDAEMON);
 
 	LOG_EXIT_OK;
     return ret;

@@ -66,8 +66,8 @@ void MqttBase::Disconnect()
 		m_MqttClient->disconnect();
     }
 
-	//delete m_MqttClient;
-	//m_MqttClient = nullptr;
+	delete m_MqttClient;
+	m_MqttClient = nullptr;
 }
 
 void MqttBase::Publish(const string& sensor, const string& value)

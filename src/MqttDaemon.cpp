@@ -144,9 +144,8 @@ void MqttDaemon::MqttConfigure(SimpleIni& iniFile)
 
 	svalue = iniFile.GetValue("mqtt", "server", "tcp://127.0.0.1:1883");
 	id = iniFile.GetValue("mqtt", "id", "");
-	LOG_VERBOSE(m_Log) << "Connecting to mqtt server " << svalue;
+	LOG_VERBOSE(m_Log) << "Set mqtt server to " << svalue;
 	SetServer(svalue, id);
-	LOG_VERBOSE(m_Log) << "Mqtt server connected";
 
 	ivalue = iniFile.GetValue("mqtt", "keepalive", 300);
 	SetKeepAlive(ivalue);
@@ -166,6 +165,15 @@ void MqttDaemon::MqttConfigure(SimpleIni& iniFile)
 	svalue = iniFile.GetValue("mqtt", "retained", "true");
 	m_MqttRetained = (StringTools::IsEqualCaseInsensitive(svalue, "true")||svalue=="1");
 	LOG_VERBOSE(m_Log) << "Set mqtt retained to " << m_MqttRetained;
+
+
+    svalue = iniFile.GetValue("mqtt", "user", "");
+    string pwd = iniFile.GetValue("mqtt", "password", "");
+    if(svalue!="")
+    {
+        SetAuthentication(svalue, pwd);
+        LOG_VERBOSE(m_Log) << "Set mqtt authentication";
+    }
 }
 
 void MqttDaemon::LogConfigure(SimpleIni& iniFile)

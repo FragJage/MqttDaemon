@@ -11,6 +11,7 @@ class MqttBase : public virtual mqtt::callback
 	virtual ~MqttBase();
 
 	void SetServer(const std::string& server, const std::string& id);
+	void SetAuthentication(const std::string& user, const std::string& password);
 	void SetMainTopic(const std::string& mainTopic);
 	void SetKeepAlive(int keepalive);
 	void SetTimeout(int timeout);

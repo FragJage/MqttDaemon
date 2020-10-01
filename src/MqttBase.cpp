@@ -22,6 +22,12 @@ void MqttBase::SetServer(const string& server, const string& id)
 	m_Id = id;
 }
 
+void MqttBase::SetAuthentication(const string& user, const string& password)
+{
+	m_ConnOpts.set_user_name(user);
+	m_ConnOpts.set_password(password);
+}
+
 void MqttBase::SetMainTopic(const string& mainTopic)
 {
     m_MainTopic = mainTopic;

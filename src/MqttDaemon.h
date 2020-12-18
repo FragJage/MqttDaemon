@@ -14,6 +14,13 @@
 #include "SimpleIni.h"
 #include "SimpleLog.h"
 
+struct MqttQueue
+{
+	MqttQueue(std::string topic, std::string msg) : Topic(topic), Message(msg) {};
+	std::string Topic;
+	std::string Message;
+};
+
 class MqttDaemon : public Service::IService, public MqttBase
 {
     public:
@@ -22,8 +29,11 @@ class MqttDaemon : public Service::IService, public MqttBase
 
 		virtual void DaemonConfigure(SimpleIni& iniFile) = 0;
 		virtual int DaemonLoop(int argc, char* argv[]) = 0;
-		virtual void on_message(const std::string& topic, const std::string& message)=0;
+		virtual void IncomingMessage(const std::string& topic, const std::string& message)=0;
+		int WaitFor(int timeout);
 		void Publish(const std::string& sensor, const std::string& value);
+		void PublishAsyncAdd(const std::string& sensor, const std::string& value);
+		void PublishAsyncStart();
 
 		int ServiceLoop(int argc, char* argv[]);
 		void SetConfigfile(const std::string& configFile);
@@ -41,6 +51,8 @@ class MqttDaemon : public Service::IService, public MqttBase
 		void Configure();
 		void MqttConfigure(SimpleIni& iniFile);
 		void LogConfigure(SimpleIni& iniFile);
+        void on_message(const std::string& topic, const std::string& message);
+        void SendMqttMessages();
 
 		std::ofstream m_logStream;
 		std::string m_logFile;
@@ -51,6 +63,9 @@ class MqttDaemon : public Service::IService, public MqttBase
 		std::string m_ConfigFilename;
 		int m_MqttQos;
 		bool m_MqttRetained;
+		std::mutex m_MqttQueueAccess;
+		ServiceConditionVariable m_MqttQueueCond;
+		std::queue<MqttQueue> m_MqttQueue;
 };
 
 #endif // MQTTDAEMON_H

@@ -247,3 +247,39 @@ int MqttDaemon::ServiceLoop(int argc, char* argv[])
 	LOG_EXIT_OK;
     return ret;
 }
+
+int MqttDaemon::WaitFor(int timeout)
+{
+    int ret = Service::Get()->WaitFor({ m_MqttQueueCond }, 250);        //Values of ret : -1 -> Timeout, 0 -> Service status change, 1 -> Need send mqtt messages
+    if(ret == 1) SendMqttMessages();
+    return ret;
+}
+
+void MqttDaemon::PublishAsyncAdd(const string& sensor, const string& value)
+{
+    lock_guard<mutex> lock(m_MqttQueueAccess);
+    m_MqttQueue.emplace(sensor, value);
+}
+
+void MqttDaemon::PublishAsyncStart()
+{
+    m_MqttQueueCond.notify_one();
+}
+
+void MqttDaemon::SendMqttMessages()
+{
+	lock_guard<mutex> lock(m_MqttQueueAccess);
+	while (!m_MqttQueue.empty())
+	{
+		MqttQueue& mqttQueue = m_MqttQueue.front();
+		LOG_VERBOSE(m_Log) << "Send " << mqttQueue.Topic << " : " << mqttQueue.Message;
+		Publish(mqttQueue.Topic, mqttQueue.Message);
+		m_MqttQueue.pop();
+	}
+}
+
+void MqttDaemon::on_message(const string& topic, const string& message)
+{
+    thread t(&MqttDaemon::IncomingMessage, this, topic, message);
+    t.detach();
+}

@@ -78,17 +78,17 @@ void MqttBase::Disconnect()
 
 void MqttBase::Publish(const string& sensor, const string& value)
 {
-	if (m_MqttClient==nullptr) Connect();
-
-    string topic = m_MainTopic+sensor;
-	m_MqttClient->publish(topic, value.c_str(), value.length());
+    Publish(sensor, value, 0, false);
 }
 
 void MqttBase::Publish(const string& sensor, const string& value, int qos, bool retained)
 {
-	if (m_MqttClient==nullptr) Connect();
+    PublishTopic(m_MainTopic+sensor, value, qos, retained);
+}
 
-    string topic = m_MainTopic+sensor;
+void MqttBase::PublishTopic(const string& topic, const string& value, int qos, bool retained)
+{
+	if (m_MqttClient==nullptr) Connect();
 	m_MqttClient->publish(topic, value.c_str(), value.length(), qos, retained);
 }
 

@@ -10,6 +10,7 @@
 #include <WinSock2.h>		// To stop windows.h including winsock.h
 #endif
 #include "MqttBase.h"
+#include "MqttLogger.h"
 #include "Service.h"
 #include "SimpleIni.h"
 #include "SimpleLog.h"
@@ -21,7 +22,7 @@ struct MqttQueue
 	std::string Message;
 };
 
-class MqttDaemon : public Service::IService, public MqttBase
+class MqttDaemon : public Service::IService, public IMqttLogPublisher, public MqttBase
 {
     public:
 		MqttDaemon(const std::string& topic, const std::string& configFileName);
@@ -33,6 +34,7 @@ class MqttDaemon : public Service::IService, public MqttBase
 		int WaitFor(int timeout);
 		void Publish(const std::string& sensor, const std::string& value);
 		void PublishAsyncAdd(const std::string& sensor, const std::string& value);
+		void PublishAsyncLog(const std::string& message);
 		void PublishAsyncStart();
 
 		int ServiceLoop(int argc, char* argv[]);
@@ -44,21 +46,25 @@ class MqttDaemon : public Service::IService, public MqttBase
 		SimpleLog* m_Log;
 
     private:
-		void SetLogLevel(const std::string& level);
+		void SetLogLevel(const std::string& level, SimpleLog::DefaultFilter* filter);
 		void SetLogDestination(const std::string& destination);
 		void ReadParameters(int argc, char* argv[]);
 
 		void Configure();
 		void MqttConfigure(SimpleIni& iniFile);
 		void LogConfigure(SimpleIni& iniFile);
+		void MqttLogConfigure(SimpleIni& iniFile);
         void on_message(const std::string& topic, const std::string& message);
         void SendMqttMessages();
 
 		std::ofstream m_logStream;
 		std::string m_logFile;
 		SimpleLog m_SimpleLog;
-		SimpleLog::DefaultWriter m_logWriter;
-		SimpleLog::DefaultFilter m_logFilter;
+		SimpleLog::DefaultWriter m_LogWriter;
+		SimpleLog::DefaultFilter m_LogFilter;
+		MqttLogger m_MqttLogWriter;
+		SimpleLog::DefaultFilter m_MqttLogFilter;
+		std::string m_LoggerTopic;
 
 		std::string m_ConfigFilename;
 		int m_MqttQos;

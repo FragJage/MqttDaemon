@@ -22,6 +22,7 @@ class MqttBase : public virtual mqtt::callback
 	void Disconnect();
 	void Publish(const std::string& sensor, const std::string& value);
 	void Publish(const std::string& sensor, const std::string& value, int qos, bool retained);
+	void PublishTopic(const std::string& topic, const std::string& value, int qos, bool retained);
 	void Subscribe(const std::string& topic, int qos=0);
 	void Unsubscribe(const std::string& topic);
 

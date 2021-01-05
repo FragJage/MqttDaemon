@@ -23,7 +23,7 @@ MqttDaemon::MqttDaemon(const string& topic, const string& configFileName) : m_lo
 	if (!SimpleFolders::FileExists(m_ConfigFilename)) m_ConfigFilename = "";
 
 	SetMainTopic(topic);
-	m_LoggerTopic = "Logger/"+topic;
+	m_LoggerTopic = "logger/"+topic;
 	m_MqttLogWriter.SetPublisher(this);
 }
 
@@ -283,6 +283,7 @@ int MqttDaemon::ServiceLoop(int argc, char* argv[])
     {
         Configure();
         Connect();
+       	Subscribe(m_LoggerTopic + "/command/#");
         ret = DaemonLoop(argc, argv);
         Disconnect();
     } while(ret == MqttDaemon::RESTART_MQTTDAEMON);
@@ -293,8 +294,8 @@ int MqttDaemon::ServiceLoop(int argc, char* argv[])
 
 int MqttDaemon::WaitFor(int timeout)
 {
-    int ret = Service::Get()->WaitFor({ m_MqttQueueCond }, 250);        //Values of ret : -1 -> Timeout, 0 -> Service status change, 1 -> Need send mqtt messages
-    if(ret == 1) SendMqttMessages();
+    int ret = Service::Get()->WaitFor({ m_MqttQueueCond }, timeout); //Values of ret : -1 -> Timeout, 0 -> Service status change, 1 -> Need send mqtt messages
+    SendMqttMessages();     //Pas de test si sortie du WaitFor par m_MqttQueueCond car les messages de log ne déclenchent pas cette condition
     return ret;
 }
 
@@ -328,14 +329,43 @@ void MqttDaemon::SendMqttMessages()
         else
         {
             MqttBase::Publish(mqttQueue.Topic, mqttQueue.Message, m_MqttQos, m_MqttRetained);
-            LOG_VERBOSE(m_Log) << "Send " << mqttQueue.Topic << " : " << mqttQueue.Message;
+            //Log sending message if necessary
+            if(!m_MqttLogWriter.IsActive())
+            {
+                //Auto lock m_MqttQueueAccess when m_MqttLogWriter is active
+                LOG_VERBOSE(m_Log) << "Send " << mqttQueue.Topic << " : " << mqttQueue.Message;
+            }
+            else
+            {
+                if(m_MqttLogFilter.Filter(SimpleLog::LVL_VERBOSE, "", __FILE__, __LINE__, __FUNCTION__))
+                {
+                    string msg = "Send " + mqttQueue.Topic + " : " + mqttQueue.Message;
+                    msg = m_MqttLogWriter.GetFormattedText(SimpleLog::LVL_VERBOSE, msg, __FILE__, __LINE__, __FUNCTION__);
+                    MqttBase::PublishTopic(m_LoggerTopic, msg, 0, false);
+                }
+            }
         }
 		m_MqttQueue.pop();
 	}
 }
 
+void MqttDaemon::IncomingLoggerMessage(const std::string& command, const std::string& message)
+{
+    if(command=="LOGLEVEL") SetLogLevel(message, &m_MqttLogFilter);
+}
+
 void MqttDaemon::on_message(const string& topic, const string& message)
 {
-    thread t(&MqttDaemon::IncomingMessage, this, topic, message);
-    t.detach();
+    string loggerCommand = m_LoggerTopic + "/command/";
+    if (topic.substr(0, loggerCommand.length()) == loggerCommand)
+    {
+        string command = topic.substr(loggerCommand.length());
+        thread t(&MqttDaemon::IncomingLoggerMessage, this, command, message);
+        t.detach();
+    }
+    else
+    {
+        thread t(&MqttDaemon::IncomingMessage, this, topic, message);
+        t.detach();
+    }
 }

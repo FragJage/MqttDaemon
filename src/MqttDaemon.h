@@ -55,6 +55,7 @@ class MqttDaemon : public Service::IService, public IMqttLogPublisher, public Mq
 		void LogConfigure(SimpleIni& iniFile);
 		void MqttLogConfigure(SimpleIni& iniFile);
         void on_message(const std::string& topic, const std::string& message);
+        void IncomingLoggerMessage(const std::string& command, const std::string& message);
         void SendMqttMessages();
 
 		std::ofstream m_logStream;

@@ -263,7 +263,7 @@ void MqttDaemon::ReadParameters(int argc, char* argv[])
 		}
 		else if ((strcmp("-l", *arg) == 0) || (strcmp("--loglevel", *arg) == 0))
 		{
-			SetLogLevel(*(arg + 1), &m_MqttLogFilter);
+			SetLogLevel(*(arg + 1), &m_LogFilter);
 		}
 		else if ((strcmp("-d", *arg) == 0) || (strcmp("--logdestination", *arg) == 0))
 		{

@@ -13,7 +13,7 @@ using namespace std;
 
 const int MqttDaemon::RESTART_MQTTDAEMON = 32767;
 
-MqttDaemon::MqttDaemon(const string& topic, const string& configFileName) : m_logFile(""), m_MqttQos(0), m_MqttRetained(true)
+MqttDaemon::MqttDaemon(const string& topic, const string& configFileName) : m_logFile(""), m_MqttQos(0), m_MqttRetained(true), m_WithThread(true)
 {
 	m_Log = &m_SimpleLog;
 	m_SimpleLog.SetFilter(&m_LogFilter);
@@ -354,18 +354,37 @@ void MqttDaemon::IncomingLoggerMessage(const std::string& command, const std::st
     if(command=="LOGLEVEL") SetLogLevel(message, &m_MqttLogFilter);
 }
 
+void MqttDaemon::WithoutThread()
+{
+    m_WithThread = false;
+}
+
 void MqttDaemon::on_message(const string& topic, const string& message)
 {
     string loggerCommand = m_LoggerTopic + "/command/";
     if (topic.substr(0, loggerCommand.length()) == loggerCommand)
     {
         string command = topic.substr(loggerCommand.length());
-        thread t(&MqttDaemon::IncomingLoggerMessage, this, command, message);
-        t.detach();
+        if(m_WithThread)
+        {
+            thread t(&MqttDaemon::IncomingLoggerMessage, this, command, message);
+            t.detach();
+        }
+        else
+        {
+            IncomingLoggerMessage(command, message);
+        }
     }
     else
     {
-        thread t(&MqttDaemon::IncomingMessage, this, topic, message);
-        t.detach();
+        if(m_WithThread)
+        {
+            thread t(&MqttDaemon::IncomingMessage, this, topic, message);
+            t.detach();
+        }
+        else
+        {
+            IncomingMessage(topic, message);
+        }
     }
 }

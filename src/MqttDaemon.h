@@ -36,6 +36,7 @@ class MqttDaemon : public Service::IService, public IMqttLogPublisher, public Mq
 		void PublishAsyncAdd(const std::string& sensor, const std::string& value);
 		void PublishAsyncLog(const std::string& message);
 		void PublishAsyncStart();
+		void WithoutThread();
 
 		int ServiceLoop(int argc, char* argv[]);
 		void SetConfigfile(const std::string& configFile);
@@ -70,6 +71,7 @@ class MqttDaemon : public Service::IService, public IMqttLogPublisher, public Mq
 		std::string m_ConfigFilename;
 		int m_MqttQos;
 		bool m_MqttRetained;
+		bool m_WithThread;
 		std::mutex m_MqttQueueAccess;
 		ServiceConditionVariable m_MqttQueueCond;
 		std::queue<MqttQueue> m_MqttQueue;

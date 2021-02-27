@@ -13,7 +13,7 @@ using namespace std;
 
 const int MqttDaemon::RESTART_MQTTDAEMON = 32767;
 
-MqttDaemon::MqttDaemon(const string& topic, const string& configFileName) : m_logFile(""), m_MqttQos(0), m_MqttRetained(true), m_WithThread(true)
+MqttDaemon::MqttDaemon(const string& topic, const string& configFileName) : m_logFile(""), m_MqttQos(0), m_MqttRetained(true)
 {
 	m_Log = &m_SimpleLog;
 	m_SimpleLog.SetFilter(&m_LogFilter);
@@ -294,7 +294,7 @@ int MqttDaemon::ServiceLoop(int argc, char* argv[])
 
 int MqttDaemon::WaitFor(int timeout)
 {
-    int ret = Service::Get()->WaitFor({ m_MqttQueueCond }, timeout); //Values of ret : -1 -> Timeout, 0 -> Service status change, 1 -> Need send mqtt messages
+    int ret = Service::Get()->WaitFor({ m_MqttQueueCond }, timeout); //Values of ret : -1 -> Timeout, 0 -> Service status change, 1 -> Force send mqtt messages
     SendMqttMessages();     //Pas de test si sortie du WaitFor par m_MqttQueueCond car les messages de log ne déclenchent pas cette condition
     return ret;
 }
@@ -318,10 +318,20 @@ void MqttDaemon::PublishAsyncStart()
 
 void MqttDaemon::SendMqttMessages()
 {
-	lock_guard<mutex> lock(m_MqttQueueAccess);
-	while (!m_MqttQueue.empty())
+	queue<MqttQueue> m_MqttQueueTmp;
 	{
-		MqttQueue& mqttQueue = m_MqttQueue.front();
+        lock_guard<mutex> lock(m_MqttQueueAccess);
+        while (!m_MqttQueue.empty())
+        {
+            MqttQueue& mqttQueue = m_MqttQueue.front();
+            m_MqttQueueTmp.emplace(mqttQueue.Topic, mqttQueue.Message);
+            m_MqttQueue.pop();
+        }
+	}
+
+	while (!m_MqttQueueTmp.empty())
+	{
+		MqttQueue& mqttQueue = m_MqttQueueTmp.front();
 		if(mqttQueue.Topic=="")
         {
             MqttBase::PublishTopic(m_LoggerTopic, mqttQueue.Message, 0, false);
@@ -345,7 +355,7 @@ void MqttDaemon::SendMqttMessages()
                 }
             }
         }
-		m_MqttQueue.pop();
+		m_MqttQueueTmp.pop();
 	}
 }
 
@@ -354,37 +364,16 @@ void MqttDaemon::IncomingLoggerMessage(const std::string& command, const std::st
     if(command=="LOGLEVEL") SetLogLevel(message, &m_MqttLogFilter);
 }
 
-void MqttDaemon::WithoutThread()
-{
-    m_WithThread = false;
-}
-
 void MqttDaemon::on_message(const string& topic, const string& message)
 {
     string loggerCommand = m_LoggerTopic + "/command/";
     if (topic.substr(0, loggerCommand.length()) == loggerCommand)
     {
         string command = topic.substr(loggerCommand.length());
-        if(m_WithThread)
-        {
-            thread t(&MqttDaemon::IncomingLoggerMessage, this, command, message);
-            t.detach();
-        }
-        else
-        {
-            IncomingLoggerMessage(command, message);
-        }
+        IncomingLoggerMessage(command, message);
     }
     else
     {
-        if(m_WithThread)
-        {
-            thread t(&MqttDaemon::IncomingMessage, this, topic, message);
-            t.detach();
-        }
-        else
-        {
-            IncomingMessage(topic, message);
-        }
+        IncomingMessage(topic, message);
     }
 }

@@ -36,7 +36,6 @@ class MqttDaemon : public Service::IService, public IMqttLogPublisher, public Mq
 		void PublishAsyncAdd(const std::string& sensor, const std::string& value);
 		void PublishAsyncLog(const std::string& message);
 		void PublishAsyncStart();
-		void WithoutThread();
 
 		int ServiceLoop(int argc, char* argv[]);
 		void SetConfigfile(const std::string& configFile);
